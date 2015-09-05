@@ -46,6 +46,9 @@
 
 #include "config.h"
 
+/* callback */
+#include "ndpiReader.h"
+
 #ifdef HAVE_JSON_C
 #include <json.h>
 #endif
@@ -95,6 +98,12 @@ static int core_affinity[MAX_NUM_READER_THREADS];
 static struct timeval pcap_start, pcap_end;
 
 /* Lib Callback func */
+
+callback protocolHandler;
+
+void addProtocolHandler(callback handler) {
+    protocolHandler = handler;
+}
 
 void onProtocol(u_int16_t thread_id, ndpi_protocol id);
 
