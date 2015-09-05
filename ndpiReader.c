@@ -96,7 +96,7 @@ static struct timeval pcap_start, pcap_end;
 
 /* Lib Callback func */
 
-void onProtocol(ndpi_protocol id);
+void onProtocol(u_int16_t thread_id, ndpi_protocol id);
 
 /**
  * Detection parameters
@@ -656,7 +656,7 @@ static void node_proto_guess_walker(const void *node, ndpi_VISIT which, int dept
       }
     }
     /* Lib Callback */
-    onProtocol(flow->detected_protocol);
+    onProtocol(thread_id, flow->detected_protocol);
 
     ndpi_thread_info[thread_id].stats.protocol_counter[flow->detected_protocol.protocol]       += flow->packets;
     ndpi_thread_info[thread_id].stats.protocol_counter_bytes[flow->detected_protocol.protocol] += flow->bytes;
@@ -972,12 +972,16 @@ static void terminateDetection(u_int16_t thread_id) {
 
 /* ***************************************************** */
 
-void onProtocol(ndpi_protocol id) {
+void onProtocol(u_int16_t thread_id, ndpi_protocol id) {
+      char buf[64];
+
 	/*
 	    if (protocolHandler) {
 	        protocolHandler(id, packet);
 	    }
 	*/
+	printf("Detected: %u %s\n", id.protocol, ndpi_protocol2name(ndpi_thread_info[thread_id].ndpi_struct,
+                                 id, buf, sizeof(buf) ));
 }
 
 
@@ -1015,7 +1019,7 @@ static unsigned int packet_processing(u_int16_t thread_id,
   }
 
   if(flow->detection_completed) {
-	onProtocol(flow->detected_protocol);
+	onProtocol(thread_id, flow->detected_protocol);
 	return(0);
   }
 
@@ -1074,7 +1078,7 @@ static unsigned int packet_processing(u_int16_t thread_id,
       }
 
       /* Lib Callback */
-      onProtocol(flow->detected_protocol);
+      onProtocol(thread_id, flow->detected_protocol);
 
       printFlow(thread_id, flow);
     }
