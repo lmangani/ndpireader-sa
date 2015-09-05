@@ -1,5 +1,5 @@
 # ndpireader-sa
-nDPI Reader (Stand-Alone)
+nDPI Reader (Stand-Alone) for ntop's nDPI Library
 
 ### Requirements
 
