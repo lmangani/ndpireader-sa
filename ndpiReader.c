@@ -1901,3 +1901,35 @@ int gettimeofday(struct timeval *tv, struct timezone *tz) {
   return 0;
 }
 #endif /* WIN32 */
+
+
+/* ******************************************************************** */
+
+struct timeval begin, end;
+u_int64_t tot_usec;
+
+void init() {
+    memset(&pcap_start, 0, sizeof(pcap_start));
+    memset(&pcap_end, 0, sizeof(pcap_end));
+
+    num_threads = 1;
+    setupDetection(0);
+    gettimeofday(&begin, NULL);
+}
+
+void setDatalinkType(pcap_t *handle) {
+    u_int16_t thread_id = 0;
+    /* ndpi_info._pcap_datalink_type = pcap_datalink(handle); */
+    ndpi_thread_info[thread_id]._pcap_datalink_type = pcap_datalink(ndpi_thread_info[thread_id]._pcap_handle);
+}
+
+void processPacket(const struct pcap_pkthdr *header, const u_char *packet) {
+    pcap_packet_callback(NULL, header, packet);
+}
+
+void finish() {
+    gettimeofday(&end, NULL);
+    tot_usec = end.tv_sec*1000000 + end.tv_usec - (begin.tv_sec*1000000 + begin.tv_usec);
+    printResults(tot_usec);
+    terminateDetection(0);
+}
