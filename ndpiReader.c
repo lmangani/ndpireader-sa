@@ -94,6 +94,10 @@ static int core_affinity[MAX_NUM_READER_THREADS];
 
 static struct timeval pcap_start, pcap_end;
 
+/* Lib Callback func */
+
+void onProtocol(ndpi_protocol id);
+
 /**
  * Detection parameters
  */
@@ -651,6 +655,8 @@ static void node_proto_guess_walker(const void *node, ndpi_VISIT which, int dept
 	// printFlow(thread_id, flow);
       }
     }
+    /* Lib Callback */
+    onProtocol(flow->detected_protocol);
 
     ndpi_thread_info[thread_id].stats.protocol_counter[flow->detected_protocol.protocol]       += flow->packets;
     ndpi_thread_info[thread_id].stats.protocol_counter_bytes[flow->detected_protocol.protocol] += flow->bytes;
@@ -966,6 +972,18 @@ static void terminateDetection(u_int16_t thread_id) {
 
 /* ***************************************************** */
 
+void onProtocol(ndpi_protocol id) {
+	/*
+	    if (protocolHandler) {
+	        protocolHandler(id, packet);
+	    }
+	*/
+}
+
+
+
+/* ***************************************************** */
+
 // ipsize = header->len - ip_offset ; rawsize = header->len
 static unsigned int packet_processing(u_int16_t thread_id,
 				      const u_int64_t time,
@@ -996,7 +1014,10 @@ static unsigned int packet_processing(u_int16_t thread_id,
     return(0);
   }
 
-  if(flow->detection_completed) return(0);
+  if(flow->detection_completed) {
+	onProtocol(flow->detected_protocol);
+	return(0);
+  }
 
   flow->detected_protocol = ndpi_detection_process_packet(ndpi_thread_info[thread_id].ndpi_struct, ndpi_flow,
 							  iph ? (uint8_t *)iph : (uint8_t *)iph6,
@@ -1051,6 +1072,9 @@ static unsigned int packet_processing(u_int16_t thread_id,
 	    flow->detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
 	}
       }
+
+      /* Lib Callback */
+      onProtocol(flow->detected_protocol);
 
       printFlow(thread_id, flow);
     }
